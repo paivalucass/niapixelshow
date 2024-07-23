@@ -90,6 +90,7 @@ const OrderDetails: React.FC = () => {
                             value={status}
                             onChange={(e) => setStatus(e.target.value)}
                             label="Status"
+                            data-cy={'select_status'}
                         >
                             <MenuItem value="Erro no Pagamento">Erro no Pagamento</MenuItem>
                             <MenuItem value="Aguardando Pagamento">Aguardando Pagamento</MenuItem>

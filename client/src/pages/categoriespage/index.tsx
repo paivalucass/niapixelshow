@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCategories } from '../../hooks';
+import { Box, Button, Container, TextField, Typography, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton } from '@mui/material';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBack';
 import styles from './categoriespage.module.css';
 
 const CategoriesPage: React.FC = () => {
@@ -24,11 +26,23 @@ const CategoriesPage: React.FC = () => {
     const [editCategoryDescription, setEditCategoryDescription] = useState('');
     const [originalCategoryName, setOriginalCategoryName] = useState(''); // variável para armazenar o nome original da categoria
 
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState('');
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+
     useEffect(() => {
         getAllCategories(); // carregar categorias ao iniciar
     }, [getAllCategories]);
 
     const handleCreateCategory = async () => {
+        if (!newCategoryName.trim()) {
+            setSnackbarMessage('O nome da categoria é obrigatório!');
+            setSnackbarOpen(true);
+            return;
+        }
+
         await createCategory({ name: newCategoryName, description: newCategoryDescription });
         setNewCategoryName('');
         setNewCategoryDescription('');
@@ -37,101 +51,199 @@ const CategoriesPage: React.FC = () => {
     };
 
     const handleUpdateCategory = async () => {
+        if (!editCategoryName.trim()) {
+            setSnackbarMessage('O nome da categoria é obrigatório!');
+            setSnackbarOpen(true);
+            return;
+        }
+
         await updateCategory(originalCategoryName, { name: editCategoryName, description: editCategoryDescription });
         setEditCategoryName('');
         setEditCategoryDescription('');
-        setIsEditing(false); // Esconder a tela de edição após atualizar a categoria
-        await getAllCategories(); // Atualizar a lista de categorias
+        setIsEditing(false);
+        await getAllCategories();
     };
 
     const handleDeleteCategory = async (categoryName: string) => {
         await deleteCategory(categoryName);
-        await getAllCategories(); // atualizar lista de categorias
+        await getAllCategories();
     };
 
     const handleEditClick = (categoryName: string, categoryDescription: string) => {
-        setOriginalCategoryName(categoryName); // armazenar o nome original da categoria
+        setOriginalCategoryName(categoryName);
         setEditCategoryName(categoryName);
         setEditCategoryDescription(categoryDescription);
         setIsEditing(true);
     };
 
-    return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <h1>Gerenciamento de Categorias</h1>
-            </div>
+    const handleOpenDeleteDialog = (categoryName: string) => {
+        setCategoryToDelete(categoryName);
+        setIsDeleteDialogOpen(true);
+    };
 
-            {loading && <p>Carregando...</p>}
+    const handleCloseDeleteDialog = () => {
+        setIsDeleteDialogOpen(false);
+        setCategoryToDelete('');
+    };
+
+    const handleConfirmDelete = async () => {
+        await handleDeleteCategory(categoryToDelete);
+        handleCloseDeleteDialog();
+    };
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
+
+    const handleGoBack = () => {
+        window.history.back();
+      };      
+
+      return (
+        <Container maxWidth="md" className={styles.container}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <IconButton onClick={handleGoBack}>
+                    <ArrowBackIosIcon sx={{ color: 'black' }}/>
+                </IconButton>
+                <Typography variant="h4" component="h1" sx={{ fontWeight: '700', textAlign: 'center', color: 'text.secondary', flexGrow: 1 }}>
+                Gerenciamento de Categorias
+                </Typography>
+            </Box>
+
+            {loading && <Typography>Carregando...</Typography>}
             {error && (
-                <div className={styles.error}>
-                    <p>Erro: {error}</p>
-                    <button className={styles.button} onClick={resetError}>Resetar Erro</button>
-                </div>
+                <Box className={styles.error}>
+                    <Typography>Erro: {error}</Typography>
+                    <Button variant="contained" color="error" className={styles.button} onClick={resetError}>Resetar Erro</Button>
+                </Box>
             )}
 
-            <div className={styles.categoryList}>
-                <h2>Categorias</h2>
+            <Box className={styles.categoryList}>
+                <Typography variant="h5" component="h2">Categorias</Typography>
                 <ul>
                     {categories.map((category) => (
                         <li className={styles.listItem} key={category.name}>
-                            <h3>{category.name}</h3>
-                            <p>{category.description}</p>
-                            <button className={styles.button} onClick={() => handleEditClick(category.name, category.description || '')}>Editar</button>
-                            <button className={styles.button} onClick={() => handleDeleteCategory(category.name)}>Excluir</button>
+                            <Typography variant="h6">{category.name}</Typography>
+                            <Typography>{category.description}</Typography>
+                            <Button variant="contained" color="primary" onClick={() => handleEditClick(category.name, category.description || '')}data-cy = {`id-edit-${category.name}`}>Editar</Button>
+                            <Button variant="contained" color="secondary" sx={{ ml: 1, borderRadius: '10px' }} onClick={() => handleOpenDeleteDialog(category.name)}data-cy = {`id-delete-${category.name}`}>Excluir</Button> 
                         </li>
                     ))}
                 </ul>
-            </div>
-            
-            <div className={styles.createCategory}>
-                <button className={styles.button} onClick={() => setIsCreating(!isCreating)}>
+            </Box>
+
+            <Box className={styles.createCategory}>
+                <Button variant="contained" color="primary" onClick={() => setIsCreating(!isCreating)}>
                     {isCreating ? 'Cancelar' : 'Criar Categoria'}
-                </button>
+                </Button>
                 {isCreating && (
-                    <div className={styles.createForm}>
-                        <h2>Nova Categoria</h2>
-                        <input
+                    <Box className={styles.createForm}>
+                        <Typography variant="h6" component="h2">Nova Categoria</Typography>
+                        <TextField
+                            name="Nome da Categoria"
                             className={styles.inputField}
                             type="text"
                             value={newCategoryName}
                             onChange={(e) => setNewCategoryName(e.target.value)}
-                            placeholder="Nome da Categoria"
+                            label="Nome da Categoria"
+                            variant="outlined"
+                            fullWidth
+                            InputLabelProps={{
+                                style: { paddingLeft: '4px', paddingRight: '4px', background: '#fff' }
+                            }}
+                            InputProps={{
+                                style: { padding: '2px' }
+                            }}
                         />
-                        <input
+                        <TextField
                             className={styles.inputField}
                             type="text"
                             value={newCategoryDescription}
                             onChange={(e) => setNewCategoryDescription(e.target.value)}
-                            placeholder="Descrição (opcional)"
+                            label="Descrição (opcional)"
+                            variant="outlined"
+                            fullWidth
+                            InputLabelProps={{
+                                style: { paddingLeft: '4px', paddingRight: '4px', background: '#fff' }
+                            }}
+                            InputProps={{
+                                style: { padding: '2px' }
+                            }}
                         />
-                        <button className={styles.button} onClick={handleCreateCategory}>Criar</button>
-                    </div>
+                        <Button variant="contained" color="primary" onClick={handleCreateCategory}>
+                            Criar
+                        </Button>
+                    </Box>
                 )}
-            </div>
+            </Box>
 
             {isEditing && (
-                <div className={styles.editCategory}>
-                    <h2>Editar Categoria</h2>
-                    <input
+                <Box className={styles.editCategory}>
+                    <Typography variant="h6" component="h2" className={styles.editHeader}>Editar Categoria</Typography>
+                    <TextField
+                        name="Nome da Categoria Novo"
                         className={styles.inputField}
-                        type="text"
+                        label="Nome da Categoria"
                         value={editCategoryName}
                         onChange={(e) => setEditCategoryName(e.target.value)}
-                        placeholder="Nome da Categoria"
+                        fullWidth
+                        InputLabelProps={{
+                            style: { paddingLeft: '4px', paddingRight: '4px', background: '#fff' } 
+                        }}
+                        InputProps={{
+                            style: { padding: '2px' }
+                        }}
                     />
-                    <input
+                    <TextField
                         className={styles.inputField}
-                        type="text"
+                        label="Descrição (opcional)"
                         value={editCategoryDescription}
                         onChange={(e) => setEditCategoryDescription(e.target.value)}
-                        placeholder="Descrição (opcional)"
+                        fullWidth
+                        InputLabelProps={{
+                            style: { paddingLeft: '4px', paddingRight: '4px', background: '#fff' }
+                        }}
+                        InputProps={{
+                            style: { padding: '2px' }
+                        }}
                     />
-                    <button className={styles.button} onClick={handleUpdateCategory}>Salvar</button>
-                    <button className={styles.button} onClick={() => setIsEditing(false)}>Cancelar</button>
-                </div>
+                    <Button variant="contained" color="primary" onClick={handleUpdateCategory}>
+                        Salvar
+                    </Button>
+                    <Button variant="outlined" color="secondary" sx={{ ml: 1, borderRadius: '10px' }} onClick={() => setIsEditing(false)}>
+                        Cancelar
+                    </Button>
+                </Box>
             )}
-        </div>
+
+            <Dialog
+                open={isDeleteDialogOpen}
+                onClose={handleCloseDeleteDialog}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{"Confirmar Exclusão"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Tem certeza de que deseja excluir a categoria {categoryToDelete}?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDeleteDialog} color="primary" sx={{ borderRadius: '10px' }}>
+                        Cancelar
+                    </Button>
+                    <Button onClick={handleConfirmDelete} data-cy = "tag" color="secondary" variant="contained" autoFocus sx={{ borderRadius: '10px' }}>
+                        Excluir
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+                <Alert onClose={handleSnackbarClose} data-cy = "error-tag" severity="error" sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+        </Container>
     );
 };
 

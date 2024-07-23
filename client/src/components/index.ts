@@ -8,6 +8,8 @@ import ProductCarouselAdmin from './ProductCarouselAdmin';
 import PhotoCarousel from './PhotoCarousel';
 import OrderTable from './OrderTable';
 import ConfirmationModal from './ConfirmPopUp';
+import PromotionCarousel from "./PromotionCarousel"
+import PromotionCard from "./PromotionCard";
 
 export { 
     Navbar,
@@ -19,5 +21,7 @@ export {
     ProductCardAdmin,
     ProductCarouselAdmin,
     OrderTable,
-    ConfirmationModal
+    ConfirmationModal,
+    PromotionCarousel,
+    PromotionCard
 };

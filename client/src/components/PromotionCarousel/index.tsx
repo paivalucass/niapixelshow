@@ -3,7 +3,7 @@ import "slick-carousel/slick/slick-theme.css";
 import React, { useEffect } from "react";
 import Slider from "react-slick";
 import { Box } from "@mui/material";
-import ProductCard from "../ProductCardAdmin";
+import PromotionCard from "../PromotionCard";
 import useProduct from "@/hooks/useProduct";
 
 const PromotionCarousel: React.FC = () => {
@@ -11,7 +11,6 @@ const PromotionCarousel: React.FC = () => {
 
   useEffect(() => {
     getAllProducts();
-    console.log(products);
   }, [getAllProducts]);
 
   if (loading) {
@@ -22,18 +21,20 @@ const PromotionCarousel: React.FC = () => {
     return <p>Ocorreu um erro: {error}</p>;
   }
 
+  // Filtra os produtos onde promotionId é diferente de null
+  const filteredProducts = products.filter((product) => product.promotionId !== null && product.promotionId !== undefined && product.promotionId !== "");
   const settings = {
-    infinite: products.length > 1,
+    infinite: filteredProducts.length > 1,
     speed: 500,
-    slidesToShow: 5,
+    slidesToShow: (filteredProducts.length > 1) ? 2 : filteredProducts.length,
     slidesToScroll: 1,
     responsive: [
       {
         breakpoint: 1024,
         settings: {
-          slidesToShow: products.length > 1 ? 2 : products.length,
+          slidesToShow: filteredProducts.length > 1 ? 2 : filteredProducts.length,
           slidesToScroll: 1,
-          infinite: products.length > 1,
+          infinite: filteredProducts.length > 1,
           dots: true,
         },
       },
@@ -50,9 +51,10 @@ const PromotionCarousel: React.FC = () => {
   return (
     <Box sx={{ maxWidth: "100%" }}>
       <Slider {...settings}>
-        {products.map((product) => (
-          <ProductCard
+        {filteredProducts.map((product) => (
+          <PromotionCard
             key={product.id} // Adicione a propriedade key aqui
+            promotionId={product.promotionId}
             name={product.name}
             price={product.price}
             //discount={product.discount}

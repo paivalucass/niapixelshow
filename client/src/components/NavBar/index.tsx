@@ -65,7 +65,7 @@ const Navbar: React.FC = () => {
         }
     };
     const handleAdmin = () => {
-        router.push('/home/admin');
+        router.push('/admin');
         handleClose();
     }
 
@@ -85,7 +85,7 @@ const Navbar: React.FC = () => {
                         niapixelshow
                     </Typography>
                     <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-                        <Tabs value={value} onChange={handleChange} sx={{
+                        <Tabs data-cy = {'select_navbar'} value={value} onChange={handleChange} sx={{
                             '& .MuiTab-root': {
                                 color: '#EDEDED', 
                                 fontWeight: 'regular', 
@@ -103,7 +103,7 @@ const Navbar: React.FC = () => {
                         }}>
                             <Tab label="Inicio" onClick={() => router.push('/')} disableRipple />
                             <Tab label="Sobre nós" onClick={() => router.push('/aboutuspage')} disableRipple />
-                            <Tab label="Contato" onClick={() => router.push('/contact')} disableRipple />
+                            <Tab label="Contato" onClick={() => router.push('/contacts/contact')} disableRipple />
                         </Tabs>
                     </Box>
                     <Box sx={{ display: 'flex', gap: '1rem' }}>

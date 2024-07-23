@@ -1,14 +1,15 @@
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import React, { useEffect, useState } from 'react';
-import Slider from 'react-slick';
-import { Box, Modal, Button, Typography, Snackbar, Alert } from '@mui/material';
-import ProductCard from '../ProductCard';
-import useProduct from '@/hooks/useProduct';
-import ProductDetailCard from '../ProductPanel';
-import { useAuth } from '@/hooks';
-import { useRouter } from 'next/router';
-import useCart, { CartItem } from '@/hooks/useCart';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import React, { useEffect, useState } from "react";
+import Slider from "react-slick";
+import { Box, Modal, Button, Snackbar, Alert } from "@mui/material";
+import ProductCard from "../ProductCard";
+import useProduct from "@/hooks/useProduct";
+import ProductDetailCard from "../ProductPanel";
+import { useAuth } from "@/hooks";
+import { useRouter } from "next/router";
+import useCart, { CartItem } from "@/hooks/useCart";
+import { usePromotion } from "@/hooks";
 
 interface ProductItem {
   image?: string;
@@ -24,20 +25,31 @@ interface ProductItem {
   promotionId?: string;
 }
 
+interface Promotion {
+  id: string;
+  name: string;
+  discount: number;
+  start_date: string;
+  end_date: string;
+  product_id: string;
+}
+
 const ProductCarousel: React.FC = () => {
-  const { products, getAllProducts, loading, error } = useProduct();
   const [selectedProduct, setSelectedProduct] = useState<CartItem | null>(null);
   const [openModal, setOpenModal] = useState(false);
-  const { user } = useAuth();
-  const { createCartItem } = useCart();
   const [userId, setUserId] = useState<string | null>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const router = useRouter();
+  const [promotions, setPromotions] = useState<{ [id: string]: number }>({});
 
+  const { user } = useAuth();
+  const { products, getAllProducts, loading, error } = useProduct();
+  const { createCartItem } = useCart();
+  const { getPromotionById } = usePromotion();
+  const router = useRouter();
 
   useEffect(() => {
     if (user && user.uid) {
-        setUserId(user.uid);
+      setUserId(user.uid);
     }
   }, [user]);
 
@@ -46,7 +58,16 @@ const ProductCarousel: React.FC = () => {
   }, [getAllProducts]);
 
   const handleProductClick = (product: ProductItem) => {
-    const { id, name, description, price, category, promotionId, status, image } = product;
+    const {
+      id,
+      name,
+      description,
+      price,
+      category,
+      promotionId,
+      status,
+      image,
+    } = product;
 
     const productData = {
       item_id: id,
@@ -60,8 +81,9 @@ const ProductCarousel: React.FC = () => {
         description: category.description,
       },
       promotionId: promotionId,
+      discount: promotions[id as string] || 0,
       quantity: 1,
-      size: 'M',
+      size: "M",
     };
     setSelectedProduct(productData as CartItem);
     setOpenModal(true);
@@ -73,14 +95,14 @@ const ProductCarousel: React.FC = () => {
   };
 
   const handleAddToCart = (quantity: number, size: string) => {
-    selectedProduct!.quantity = quantity;
-    selectedProduct!.size = size;
-    if (userId && selectedProduct) {
-      createCartItem(userId, selectedProduct);
-      setOpenSnackbar(true);
-    }
-    else {
-      router.push('/sign-in'); // Redireciona para a página de login se o userId não estiver disponível
+    if (selectedProduct) {
+      const updatedProduct = { ...selectedProduct, quantity, size };
+      if (userId) {
+        createCartItem(userId, updatedProduct);
+        setOpenSnackbar(true);
+      } else {
+        router.push('/sign-in'); // Redireciona para a página de login se o userId não estiver disponível
+      }
     }
   };
 
@@ -94,6 +116,10 @@ const ProductCarousel: React.FC = () => {
 
   if (error) {
     return <p>Ocorreu um erro: {error}</p>;
+  }
+
+  if (!loading && products.length === 0) {
+    return <p>Nenhum produto disponível</p>;
   }
 
   const settings = {
@@ -127,9 +153,7 @@ const ProductCarousel: React.FC = () => {
         {products.map((product) => (
           <ProductCard
             key={product.id}
-            name={product.name}
-            price={product.price}
-            image={product.image}
+            product={product}
             onClick={() => handleProductClick(product)}
             dataCy={`product-card-${product.name}`}
           />
@@ -141,23 +165,38 @@ const ProductCarousel: React.FC = () => {
         aria-labelledby="product-detail-modal"
         aria-describedby="product-detail-description"
       >
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
           {selectedProduct && (
-            <Box sx={{ position: 'relative', backgroundColor: 'white', p: 3, borderRadius: 1.6 }}>
+            <Box
+              sx={{
+                position: "relative",
+                backgroundColor: "white",
+                p: 3,
+                borderRadius: 1.6,
+              }}
+            >
               <ProductDetailCard
                 ProductInfo={selectedProduct}
                 onAddToCart={handleAddToCart}
               />
               <Button
+                name={'Fechar'}
                 onClick={handleCloseModal}
-                sx={{ 
-                  position: 'absolute', 
-                  top: 30, 
-                  right: 30, 
-                  backgroundColor: 'red', 
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: 'darkred',
+                sx={{
+                  position: "absolute",
+                  top: 30,
+                  right: 30,
+                  backgroundColor: "red",
+                  color: "white",
+                  "&:hover": {
+                    backgroundColor: "darkred",
                   },
                 }}
                 data-cy="close-modal"
@@ -172,10 +211,14 @@ const ProductCarousel: React.FC = () => {
         open={openSnackbar}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        data-cy = "snackbar"
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        data-cy="snackbar"
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
           Produto adicionado ao carrinho!
         </Alert>
       </Snackbar>

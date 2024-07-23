@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Box, Typography, Container } from '@mui/material';
+import { Box, Typography, Container, Snackbar, Alert } from '@mui/material';
 import ProductForm from '@/components/ProductForm';
 import { useProduct } from '@/hooks';
 
@@ -9,7 +9,11 @@ const EditProductPage: React.FC = () => {
   const router = useRouter(); // Hook do Next.js para roteamento
   const { id } = router.query; // Obtém o ID do produto a partir da URL
 
-  const { productData, getProductById, updateProduct } = useProduct(); // Hook personalizado para manipulação de produtos
+  const { productData, getProductById, updateProduct, deleteProduct } = useProduct(); // Hook personalizado para manipulação de produtos
+
+  // Estados para controlar o Snackbar
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   // useEffect para buscar os dados do produto quando o ID estiver disponível
   useEffect(() => {
@@ -22,9 +26,19 @@ const EditProductPage: React.FC = () => {
   const handleSubmit = (data: any) => {
     if (id && typeof id === "string") {
       updateProduct(id, data).then(() => {
-        router.push(`/product`); // Redireciona para a página de produtos após a atualização
+        setSnackbarMessage('Produto salvo com sucesso!');
+        setSnackbarOpen(true);
+        setTimeout(() => {
+          router.push(`/product`);
+        }, 2000);// Redireciona para a página de produtos após a atualização
       });
     }
+  };
+
+
+  // Função para fechar o Snackbar
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
@@ -38,6 +52,12 @@ const EditProductPage: React.FC = () => {
           <Typography>Carregando...</Typography>
         )}
       </Box>
+      {/* Snackbar para exibir mensagens de sucesso */}
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

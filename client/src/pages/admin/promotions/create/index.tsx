@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import theme from "../../../../../styles/theme";
+import theme from "../../../../styles/theme";
 import { useRouter } from "next/router";
 import {
   Button,
@@ -65,7 +65,7 @@ const CreatePromotion: React.FC = () => {
         await createPromotion(formattedData);
         console.log("Promoção cadastrada com sucesso!");
         setOpen(false);
-        router.push("/home/admin/promotions");
+        router.push("/admin/promotions");
       } catch (error) {
         console.error(error);
       }

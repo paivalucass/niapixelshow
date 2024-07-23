@@ -15,7 +15,7 @@ export const Product = z.object({
       message: "O status deve ser verdadeiro ou falso",
     }),
   category: Category, // Utiliza o objeto Category importado
-  promotionId: z.string().optional(),
+  promotionId: z.string().optional().default(""),
   image: z.string().optional(),
 });
 

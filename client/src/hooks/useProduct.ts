@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import api from '@/services/api';
-import { Product, Category } from '@/types';
+import { Product, PromotionSchema } from '@/types';
 
 // Interface para o tipo Product
 export interface Product {
@@ -15,6 +15,7 @@ export interface Product {
         description?: string;
     };
     promotionId?: string;
+    promotion?: PromotionSchema;
 }
 
 // Interface para o hook useProduct
@@ -33,19 +34,14 @@ interface UseProductsInterface<T> {
 
 // Hook personalizado para lidar com operações de produto
 const useProduct = (): UseProductsInterface<Product> => {
-    // Estado para armazenar um único produto
     const [productData, setProductData] = useState<Product | null>(null);
-    // Estado para armazenar uma lista de produtos
     const [products, setProducts] = useState<Product[]>([]);
-    // Estado para indicar carregamento
     const [loading, setLoading] = useState<boolean>(false);
-    // Estado para armazenar erros
     const [error, setError] = useState<string | null>(null);
 
-    // Função para lidar com chamadas de API
     const handleApiCall = async <T,>(apiCall: Promise<{ data: { product: T } | T }>): Promise<T> => {
-        setLoading(true); // Indica que a chamada está em andamento
-        setError(null); // Reseta qualquer erro anterior
+        setLoading(true);
+        setError(null);
         try {
             const response = await apiCall;
             const data = response.data;
@@ -59,55 +55,75 @@ const useProduct = (): UseProductsInterface<Product> => {
             setError(errorMessage);
             throw new Error(errorMessage);
         } finally {
-            setLoading(false); // Indica que a chamada foi concluída
+            setLoading(false);
         }
     };
 
-    // Função para criar um produto
+    const fetchPromotion = async (promotionId: string) => {
+        try {
+            const response = await api.get(`/promotion/${promotionId}`);
+            console.log(`Fetched promotion: ${JSON.stringify(response.data)}`);
+            return response.data;
+        } catch (err) {
+            console.error(`Failed to fetch promotion with ID: ${promotionId}`, err);
+            return null;
+        }
+    };
+
     const createProduct = async (productData: Product) => {
         await handleApiCall(api.post<{ data: Product }>('/product', productData));
     };
 
-    // Função para atualizar um produto
     const updateProduct = async (productId: string, productData: Partial<Product>) => {
         await handleApiCall(api.put<{ data: Product }>(`/product/${productId}`, productData));
     };
 
-    // Função para obter um produto por ID
     const getProductById = useCallback(async (productId: string) => {
         const response = await handleApiCall<Product>(api.get(`/product/${productId}`));
+        if (response.promotionId) {
+            const promotion = await fetchPromotion(response.promotionId);
+            response.promotion = promotion;
+        }
         setProductData(response);
     }, []);
 
-    // Função para deletar um produto por ID
     const deleteProduct = async (productId: string) => {
         await handleApiCall(api.delete(`/product/${productId}`));
     };
 
-    // Função para obter todos os produtos
     const getAllProducts = useCallback(async () => {
         const response = await handleApiCall<Product[]>(api.get('/product/'));
-        setProducts(response);
+        const productsWithPromotions = await Promise.all(response.map(async (product) => {
+            if (product.promotionId) {
+                const promotion = await fetchPromotion(product.promotionId);
+                product.promotion = promotion;
+            }
+            return product;
+        }));
+        console.log("Fetched products: ", productsWithPromotions); // Log to check products
+        setProducts(productsWithPromotions);
     }, []);
 
-    // Função para resetar o estado de erro
     const resetError = () => {
         setError(null);
     };
 
-  return {
-    productData,
-    products,
-    createProduct,
-    updateProduct,
-    getProductById,
-    deleteProduct,
-    getAllProducts,
-    loading,
-    error,
-    resetError,
-  };
+    return {
+        productData,
+        products,
+        createProduct,
+        updateProduct,
+        getProductById,
+        deleteProduct,
+        getAllProducts,
+        loading,
+        error,
+        resetError,
+    };
 };
 
 export default useProduct;
 export type { Product };
+function getAllPromotions() {
+  throw new Error("Function not implemented.");
+}

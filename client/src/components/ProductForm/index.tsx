@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box, Typography, MenuItem, Select, InputLabel, FormControl, IconButton } from '@mui/material';
+import { TextField, Button, Box, Typography, MenuItem, Select, InputLabel, FormControl, IconButton, Snackbar, Alert } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/router';
 import { Product, useProduct } from '@/hooks';
 
 // Componente de formulário de produto
-const ProductForm: React.FC<{ onSubmit: (data: Product) => void, edit?: boolean, productData?: Product }> = ({ onSubmit, edit = false, productData }) => {
+const ProductForm: React.FC<{ onSubmit: (data: Product) => void, edit?: boolean, productData?: Product}> = ({ onSubmit, edit = false, productData, onDelete }) => {
   // Estado para armazenar os dados do formulário
   const [formData, setFormData] = useState<Product>(productData ? productData : {
     name: '',
@@ -21,15 +21,31 @@ const ProductForm: React.FC<{ onSubmit: (data: Product) => void, edit?: boolean,
   // Estado para controlar a página do formulário (0: Formulário, 1: Upload de Foto)
   const [page, setPage] = useState(0);
 
+  // Estados para controlar o Snackbar
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "info" | "warning">("success");
+  const [errors, setErrors] = useState<any>({});
+
   const router = useRouter();
   const { deleteProduct } = useProduct(); // Hook personalizado para operações de produto
+
+  const validateForm = () => {
+    let formErrors: any = {};
+    if (!formData.name) formErrors.name = 'Nome é obrigatório';
+    if (!formData.description) formErrors.description = 'Descrição é obrigatória';
+    if (!formData.price) formErrors.price = 'Valor é obrigatório';
+    if (!formData.category.name) formErrors.categoryName = 'Categoria é obrigatória';
+    if (!formData.category.description) formErrors.categoryDescription = 'Descrição da categoria é obrigatória';
+    if (formData.status === null || formData.status === undefined) formErrors.status = 'Disponibilidade é obrigatória';
+    return formErrors;
+  };
 
   // Função para lidar com mudanças nos campos do formulário
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target;
 
     if (name?.startsWith('category.')) {
-      // Atualiza campos da categoria
       const categoryField = name.split('.')[1];
       setFormData(prevState => ({
         ...prevState,
@@ -39,18 +55,28 @@ const ProductForm: React.FC<{ onSubmit: (data: Product) => void, edit?: boolean,
         }
       }));
     } else {
-      // Atualiza outros campos do formulário
       setFormData({ ...formData, [name as string]: value });
     }
+
+    setErrors({ ...errors, [name as string]: '' });
   };
 
   // Função para lidar com o envio do formulário
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit({
-      ...formData,
-      price: parseFloat(formData.price.toString()),  // Assegura que o preço é um número
-    });
+    formData.status = (formData.status === "true");
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length === 0) {
+      onSubmit({
+        ...formData,
+        price: parseFloat(formData.price.toString()),
+      });
+    } else {
+      setErrors(formErrors);
+      setSnackbarSeverity("warning")
+      setSnackbarMessage('Por favor, preencha todos os campos obrigatórios.');
+      setSnackbarOpen(true);
+    }
   };
 
   // Função fictícia para lidar com o upload de fotos (a lógica real deve ser adicionada)
@@ -62,8 +88,19 @@ const ProductForm: React.FC<{ onSubmit: (data: Product) => void, edit?: boolean,
   const handleDelete = () => {
     const id = router.query.id;
     if (id && typeof id === "string") {
-      deleteProduct(id).then(() => { router.push(`/product`); });
+      deleteProduct(id).then(() => {
+        setSnackbarMessage('Produto excluído com sucesso!');
+        setSnackbarOpen(true);
+        setTimeout(() => {
+          router.push(`/product`);
+        }, 2000); // 2 segundos de atraso antes de redirecionar
+      });
     }
+  };
+
+  // Função para fechar o Snackbar
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
@@ -132,8 +169,8 @@ const ProductForm: React.FC<{ onSubmit: (data: Product) => void, edit?: boolean,
               value={formData.status}
               onChange={handleChange}
             >
-              <MenuItem value={true}>Sim</MenuItem>
-              <MenuItem value={false}>Não</MenuItem>
+              <MenuItem component="option" value={"true"}>Sim</MenuItem>
+              <MenuItem component="option" value={"false"}>Não</MenuItem>
             </Select>
           </FormControl>
           <Box textAlign="center" mt={4}>
@@ -179,6 +216,12 @@ const ProductForm: React.FC<{ onSubmit: (data: Product) => void, edit?: boolean,
           </Box>
         </>
       )}
+      {/* Snackbar para exibir mensagens de sucesso */}
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity="warning" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

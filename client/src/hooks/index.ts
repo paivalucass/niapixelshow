@@ -6,5 +6,15 @@ import useCategories from "./useCategories";
 import useOrder from "./useOrder";
 import usePromotion from "./usePromotion";
 
-export { useUser, useAuth, AuthProvider, useProduct, useCart, useOrder, useCategories };
+export {
+  useUser,
+  useAuth,
+  AuthProvider,
+  useProduct,
+  useCart,
+  useOrder,
+  useCategories,
+  usePromotion
+};
+
 export type { CartItem, UseCartInterface, Product };

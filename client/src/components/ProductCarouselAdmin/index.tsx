@@ -3,16 +3,19 @@ import "slick-carousel/slick/slick-theme.css";
 import React, { useEffect } from "react";
 import Slider from "react-slick";
 import { Box } from "@mui/material";
-import ProductCard from "../ProductCardAdmin";
+import ProductCardAdmin from "../ProductCardAdmin";
 import useProduct from "@/hooks/useProduct";
 
-const ProductCarousel: React.FC = () => {
+const ProductCarouselAdmin: React.FC = () => {
   const { products, getAllProducts, loading, error } = useProduct();
 
   useEffect(() => {
     getAllProducts();
-    console.log(products);
   }, [getAllProducts]);
+
+  useEffect(() => {
+    console.log("Products in carousel: ", products);
+  }, [products]);
 
   if (loading) {
     return <p>Carregando...</p>;
@@ -20,6 +23,10 @@ const ProductCarousel: React.FC = () => {
 
   if (error) {
     return <p>Ocorreu um erro: {error}</p>;
+  }
+
+  if (!loading && products.length === 0) {
+    return <p>Nenhum produto disponível</p>;
   }
 
   const settings = {
@@ -51,13 +58,9 @@ const ProductCarousel: React.FC = () => {
     <Box sx={{ maxWidth: "100%" }}>
       <Slider {...settings}>
         {products.map((product) => (
-          <ProductCard
-            key={product.id} // Adicione a propriedade key aqui
-            id={product.id}
-            name={product.name}
-            price={product.price}
-            //discount={product.discount}
-            image={product.image}
+          <ProductCardAdmin
+            key={product.id}
+            product={product}
             onClick={() => console.log(`Produto ${product.name} clicado!`)}
           />
         ))}
@@ -66,4 +69,4 @@ const ProductCarousel: React.FC = () => {
   );
 };
 
-export default ProductCarousel;
+export default ProductCarouselAdmin;

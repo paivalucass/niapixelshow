@@ -115,7 +115,7 @@ const CartPage: React.FC = () => {
                             <FormControl sx={{ width: 100, mr: 2 }}>
                                 <InputLabel id={`size-select-label-${item.item_id}`} sx={{ color: '#171717' }}>Tamanho</InputLabel>
                                 <Select
-                                    labelId={`size-select-label-${item.item_id}`}
+                                    // labelId={`size-select-label-${item.item_id}`}
                                     value={item.size}
                                     label="Tamanho"
                                     onChange={(e: SelectChangeEvent<string>) => handleSizeChange(item, e.target.value as string)}
@@ -152,6 +152,7 @@ const CartPage: React.FC = () => {
                             Total: R$ {cart?.price.toFixed(2)}
                         </Typography>
                         <Button
+                            name={'finalizar_pedido'}
                             variant="contained"
                             color="primary"
                             onClick={handleCheckout}

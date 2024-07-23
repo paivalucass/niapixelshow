@@ -102,6 +102,7 @@ const StatsPage: React.FC = () => {
                 <Grid item xs={2}>
                     <InputLabel>Ano</InputLabel>
                     <TextField
+                        name='Ano'
                         variant="outlined"
                         fullWidth
                         value={year}
@@ -111,6 +112,7 @@ const StatsPage: React.FC = () => {
                 <Grid item xs={2}>
                     <InputLabel>Mês</InputLabel>
                     <Select
+                        name="Mes"
                         value={month}
                         onChange={(e) => setMonth(e.target.value)}
                         label="Mês"
@@ -129,11 +131,12 @@ const StatsPage: React.FC = () => {
                         <MenuItem value="12">12</MenuItem>
                     </Select>
                 </Grid>
-                <Grid item xs={1} sx={{ mt: 5 }}>
+                <Grid item xs={2} sx={{ mt: 5 }}>
                     { filterButton() }
                 </Grid>
-                <Grid item xs={1} sx={{ mt: 5 }}>
+                <Grid item xs={2} sx={{ mt: 5 }}>
                     <Button
+                        id='resetButton'
                         variant="outlined"
                         color="primary"
                         onClick={() => resetFilter()}
@@ -143,7 +146,7 @@ const StatsPage: React.FC = () => {
                 </Grid>
             </Grid>
             <Container maxWidth="lg" sx={{ backgroundColor: "#DA0037", borderRadius: '1rem', p: 4, boxShadow: 3 }}>
-            <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: '700', textAlign: 'left', color: '#EDEDED', mb: 1, mt: 1, fontSize: 20 }}>
+            <Typography variant="h4" component="h1" gutterBottom id='tableText' sx={{ fontWeight: '700', textAlign: 'left', color: '#EDEDED', mb: 1, mt: 1, fontSize: 20 }}>
                 { tableText }
             </Typography>
                 {drawTable()}

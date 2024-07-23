@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Card,
   CardMedia,
@@ -6,62 +6,61 @@ import {
   Typography,
   Box,
   ButtonBase,
-} from "@mui/material";
+} from '@mui/material';
+import { Product } from '@/hooks/useProduct';
 
 interface ProductCardProps {
-  name: string;
-  price: number;
-  discount?: number;
-  image?: string;
+  product: Product;
   onClick: () => void;
-  dataCy?: string; // Novo prop para data-cy
+  dataCy?: string;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
-  name,
-  price,
-  discount,
-  image,
+  product,
   onClick,
-  dataCy, 
+  dataCy,
 }) => {
-  const oldPrice = discount
-    ? (price / (1 - discount / 100)).toFixed(2)
-    : price.toFixed(2);
+  if (!product) {
+    return null;
+  }
+
+  const { name, price, image, promotion } = product;
+  const oldPrice = promotion ? price / (1 - promotion.discount / 100) : price;
+
   return (
     <ButtonBase
       onClick={onClick}
-      sx={{ display: "block", textAlign: "initial" }}
-      data-cy={dataCy} 
+      sx={{ display: 'block', textAlign: 'initial' }}
+      data-cy={dataCy}
     >
       <Card sx={{ width: 200, borderRadius: 1.6, height: 280 }}>
-        <CardMedia component="img" height="180" image={image} alt={name} />
-        <CardContent style={{ height: "180" }}>
+        <CardMedia component='img' height='180' image={image} alt={name} />
+        <CardContent style={{ height: '180' }}>
           <Typography
             gutterBottom
-            variant="h5"
-            component="div"
+            variant='h5'
+            component='div'
             fontSize={13}
             fontWeight={600}
           >
             {name}
           </Typography>
-          {discount ? (
+          {promotion ? (
             <Box>
               <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ textDecoration: "line-through" }}
+                variant='body2'
+                color='text.secondary'
+                sx={{ textDecoration: 'line-through' }}
               >
-                {`R$ ${oldPrice}`}
+                {`R$ ${oldPrice?.toFixed(2)}`}
               </Typography>
-              <Typography color="green" fontWeight={600}>
+              <Typography color='green' fontWeight={600}>
                 {`R$ ${price.toFixed(2)}`}
               </Typography>
             </Box>
           ) : (
-            <Typography variant="body2" color="text.secondary">
-              {`R$ ${price.toFixed(2)}`}
+            <Typography variant='body2' color='text.secondary'>
+              {`R$ ${oldPrice?.toFixed(2)}`}
             </Typography>
           )}
         </CardContent>

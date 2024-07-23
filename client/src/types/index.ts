@@ -1,4 +1,4 @@
-import { Product, Category } from "./ProductTypes";
+import { Product, Category, ProductSchemaType } from "./ProductTypes";
 import {
   userSchema,
   UserSchema,
@@ -39,6 +39,7 @@ export type {
   UseUserReturn,
   PromotionSchema,
   UsePromotionReturn,
+  ProductSchemaType,
   Order,
   UseOrderInterface,
   UpdateUserSchemaType,

@@ -11,7 +11,7 @@ const PaymentPage = () => {
     const [paymentCode] = useState<string>('00020101021126430014br.gov.bcb.pix0121nathyre2002@gmail.com5204000053039865802BR5923NATHALIA REZENDE COELHO6007ARACAJU62070503***6304A3A7'); // Substitua pelo código real
 
     const handleBack = () => {
-        router.back();
+        router.push('/home/user');
     };
 
     if (loading) {
@@ -30,11 +30,11 @@ const PaymentPage = () => {
 
     return (
         <Container maxWidth="sm" sx={{ backgroundColor: 'background.paper', borderRadius: '1rem', p: 4, boxShadow: 3 }}>
-            <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: '700', textAlign: 'center', color: 'text.primary', mb: 4, mt: 1 }}>
+            <Typography id="payment_page" variant="h4" component="h1" gutterBottom sx={{ fontWeight: '700', textAlign: 'center', color: 'text.primary', mb: 4, mt: 1 }}>
                 Pagamento
             </Typography>
             <Paper elevation={3} sx={{ padding: 2, marginBottom: 4 }}>
-                <Typography variant="h6" component="h2" color='primary' gutterBottom sx={{ fontWeight: '700', textAlign: 'center', mb: 2 }}>
+                <Typography id="pay_copycode" variant="h6" component="h2" color='primary' gutterBottom sx={{ fontWeight: '700', textAlign: 'center', mb: 2 }}>
                     Código Copia e Cola
                 </Typography>
                 <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
@@ -47,7 +47,7 @@ const PaymentPage = () => {
                 </Box>
             </Paper>
             <Paper elevation={3} sx={{ padding: 2, marginBottom: 4 }}>
-                <Typography variant="h6" component="h2" color='primary' gutterBottom sx={{ fontWeight: '700', textAlign: 'center', mb: 2 }}>
+                <Typography id="pay_qrcode" variant="h6" component="h2" color='primary' gutterBottom sx={{ fontWeight: '700', textAlign: 'center', mb: 2 }}>
                     QR Code
                 </Typography>
                 <Box sx={{ textAlign: 'center' }}>
